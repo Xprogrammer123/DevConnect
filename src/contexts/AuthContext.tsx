@@ -21,13 +21,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check active sessions and sets the user
+    // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for changes on auth state (sign in, sign out, etc.)
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -43,32 +43,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email,
         password,
         options: {
-          data: {
-            full_name: fullName,
-            user_type: userType,
-          },
+          data: { full_name: fullName, user_type: userType },
         },
       });
 
       if (error) throw error;
 
-      // Create user profile
+      // Store user profile in database
       if (data.user) {
         const { error: profileError } = await supabase
           .from('users')
-          .insert([
-            {
-              id: data.user.id,
-              email,
-              full_name: fullName,
-              user_type: userType,
-            },
-          ]);
+          .insert([{ id: data.user.id, email, full_name: fullName, user_type: userType }]);
 
         if (profileError) throw profileError;
       }
 
-      navigate('/dashboard');
+      // Fetch updated user info
+      const { data: updatedUser } = await supabase.auth.getUser();
+      setUser(updatedUser.user);
+
+      navigate('/'); // Redirect to homepage with updated header
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred during sign up');
     }
@@ -77,13 +71,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) throw error;
-      navigate('/dashboard');
+
+      // Fetch updated user info
+      const { data: updatedUser } = await supabase.auth.getUser();
+      setUser(updatedUser.user);
+
+      navigate('/'); // Redirect to homepage with updated header
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Invalid login credentials');
     }
@@ -94,7 +90,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(null);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/');
+
+      setUser(null);
+      navigate('/'); // Redirect to homepage after logout
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error signing out');
     }
