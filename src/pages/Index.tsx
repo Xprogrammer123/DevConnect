@@ -15,6 +15,7 @@ export const Index = () => {
   <HeroSection/>
   <FeaturesSection/>
   <ProcessSection/>
+ 
   <PricingSection/>
   <TestimonialsSection/>
   <CTASection/>
