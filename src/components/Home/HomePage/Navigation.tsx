@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Code2 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
-
-
+import { Modal } from  "../modal/Modal"
 export const Navigation = () => {
   const { user, signOut } = useAuth(); // Get user & signOut from AuthContext
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false); // Modal state
 
   return (
     <nav className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[70%] backdrop-blur-sm bg-white/10 rounded-full mt-5">
@@ -35,7 +35,7 @@ export const Navigation = () => {
 
               {/* Logout Button */}
               <button
-                onClick={signOut}
+                onClick={() => setLogoutModalOpen(true)}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition"
               >
                 Logout
@@ -53,6 +53,18 @@ export const Navigation = () => {
           )}
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        open={logoutModalOpen}
+        className = 'mt-[500px]'
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={() => {
+          setLogoutModalOpen(false);
+          signOut();
+        }}
+        
+      />
     </nav>
   );
 };

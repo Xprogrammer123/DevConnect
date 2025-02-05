@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { Modal }from '../components/Home/modal/Modal'
 
 interface AuthContextType {
   user: User | null;
@@ -18,6 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -92,16 +94,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       setUser(null);
-      navigate('/'); // Redirect to homepage after logout
+      navigate("/"); // Redirect to homepage after logout
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error signing out');
+      setError(error instanceof Error ? error.message : "Error signing out");
     }
   };
+
 
   return (
     <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, error }}>
       {children}
+
+
+      <Modal
+        open={logoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={() => {
+          setLogoutModalOpen(false);
+          signOut();
+        }}
+      />
     </AuthContext.Provider>
+
   );
 };
 
