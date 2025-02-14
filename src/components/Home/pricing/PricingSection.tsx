@@ -29,7 +29,7 @@ const pricingPlans = [
   },
   {
     name: 'Enterprise',
-    price: '$199',
+    price: '$110',
     description: 'For large organizations',
     features: [
       { text: 'Unlimited everything', included: true },
